@@ -5,10 +5,14 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreGroupRequest;
 use App\Http\Requests\UpdateGroupRequest;
 use App\Http\Resources\GroupResource;
-use App\Http\Filters\GroupFilter;
 use App\Models\Group;
+use App\Models\Tag;
+
+use App\Models\Task;
+use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class GroupController extends Controller
@@ -16,7 +20,7 @@ class GroupController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): View
+    public function index(Request $request = null): View
     {
 
         $listCollection = Group::query()
@@ -24,10 +28,15 @@ class GroupController extends Controller
             ->with('tasks.tags')
             ->orderByDesc('created_at')
             ->get();
-        $filter = app()->make(GroupFilter::class, ['queryParams'=> array_filter($listCollection->toArray())]);
-       $groups = Group::filter($filter);
+
+        $tagList = $listCollection->map(function ($group) {
+            return $group->tasks->map(function ($item) {
+                return $item->tags;
+            })->flatten();
+        })->flatten()->unique('title')->all();
+
         $groups = GroupResource::collection($listCollection);
-        return view('groups.index', compact('groups'));
+        return view('groups.index', compact('groups', 'tagList'));
     }
 
     /**
@@ -45,16 +54,12 @@ class GroupController extends Controller
 
     public function update(UpdateGroupRequest $request)
     {
-        // Get the data from the request
-        $data = $request->all();
+        $data = $request->validated();
 
-        // Find the record in the database based on its ID
         $record = Group::findOrFail($data['id']);
 
-        // Update the record with the new data
-        $record->update($request->validated());
+        $record->update($data);
 
-        // Return a response indicating success
         return response()->json([
             'isSuccessful' => true,
             'message' => 'Data updated successfully'
@@ -62,14 +67,6 @@ class GroupController extends Controller
 //        return redirect()->route('groups.index')->with('status', 'List updated!');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function updateOld(UpdateGroupRequest $request, Group $list): RedirectResponse
-    {
-        $list->update($request->validated());
-        return redirect()->route('groups.index')->with('status', 'List updated!');
-    }
 
     /**
      * Remove the specified resource from storage.
@@ -78,5 +75,26 @@ class GroupController extends Controller
     {
         $list->delete();
         return redirect()->route('groups.index')->with('status', 'List deleted!');
+    }
+
+    public function filter(Request $request): View
+    {
+
+        $tags = Tag::whereIn('tags.id', $request->get('tags'))
+            ->join('tag_task', 'tags.id', '=', 'tag_task.tag_id')
+            ->select('tag_id', 'task_id')
+            ->groupBy('task_id', 'tag_id');
+        $tasks = Task::joinSub($tags, 'tags', function (JoinClause $join) {
+            $join->on('tasks.id', '=', 'tags.task_id');
+        });
+        $groups = Group::whereIn('id', $tasks->select('group_id')->getQuery())->get();
+        $tagList = $groups->map(function ($group) {
+            return $group->tasks->map(function ($item) {
+                return $item->tags;
+            })->flatten();
+        })->flatten()->unique('title')->all();
+
+        $groups = GroupResource::collection($groups);
+        return view('groups.index', compact('groups'));
     }
 }

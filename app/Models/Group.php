@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\Traits\Filterable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Group extends Model
 {
-    use HasFactory, SoftDeletes, Filterable;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'user_id',
@@ -29,4 +28,5 @@ class Group extends Model
     {
         return $this->hasMany(Task::class);
     }
+
 }

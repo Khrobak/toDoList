@@ -69,6 +69,12 @@
                                     </button>
                                 </form>
                             </div>
+                            @if(!empty($task->tags->first()))
+                                <div>
+                                    Tags:
+                                    {{$task->tags->implode('title', ', ')}}
+                                </div>
+                            @endif
                             <div class="visually-hidden update-task{{$task->id}}">
                                 <form action="#" enctype="multipart/form-data" id="update-task{{$task->id}}form"
                                       class="update-task">
@@ -109,14 +115,7 @@
                                     <button type="submit" class="btn btn-primary">Submit</button>
                                 </form>
                             </div>
-                            @if(!empty($task->tags->first()))
-                                <div>
-                                    Tags:
-                                    @foreach($task->tags as $tag)
-                                        {{$tag->title}}
-                                    @endforeach
-                                </div>
-                            @endif
+
                         </li>
                     @endforeach
                     <li class="list-group-item">
@@ -139,7 +138,7 @@
                                 <div class="mb-3">
                                     <label for="tags" class="form-label">Tags</label>
                                     <input type="text" class="form-control" id="tags" name="tags"
-                                           value="{{old('tags')}}">
+                                           value="">
                                     @error('tags')
                                     <div class="form-text">{{$message}}</div>
                                     @enderror
