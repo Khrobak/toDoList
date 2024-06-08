@@ -3,11 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreTaskRequest;
+use App\Http\Services\TaskService;
 use App\Models\Task;
 use App\Models\Group;
-use App\Services\TaskService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Response;
 use Illuminate\View\View;
 
 class TaskController extends Controller
@@ -24,24 +23,21 @@ class TaskController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreTaskRequest $request, TaskService $service)
+    public function store(StoreTaskRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        $service->store($data);
-        return response()->json([
-            'isSuccessful' => true,
-            'message' => 'Data updated successfully',
-        ]);
+        app(TaskService::class)->store($data);
+        return redirect()->route('groups.index')->with('status', 'Task updated!');
     }
 
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(StoreTaskRequest $request, TaskService $service, Task $task)
+    public function update(StoreTaskRequest $request, Task $task)
     {
         $data = $request->validated();
-        $status = $service->update($data, $task);
+        $status = app(TaskService::class)->update($data, $task);
         if ($status) {
             return redirect()->route('groups.index')->with('status', 'Task updated!');
         }
@@ -51,7 +47,7 @@ class TaskController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Task $task)
+    public function destroy(Task $task):RedirectResponse
     {
         $task->delete();
         return redirect()->route('groups.index')->with('status', 'Task deleted!');

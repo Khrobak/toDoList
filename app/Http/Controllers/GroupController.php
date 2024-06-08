@@ -6,7 +6,6 @@ use App\Http\Requests\StoreGroupRequest;
 use App\Http\Requests\UpdateGroupRequest;
 use App\Models\Group;
 use App\Repositories\GroupRepository;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -26,38 +25,27 @@ class GroupController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreGroupRequest $request): JsonResponse
+    public function store(StoreGroupRequest $request): RedirectResponse
     {
         Group::create($request->validated());
-        return response()->json([
-            'isSuccessful' => true,
-            'message' => 'List stored successfully',
-        ]);
+        return redirect()->route('groups.index')->with('status', 'List created!');
     }
 
 
-    public function update(UpdateGroupRequest $request)
+    public function update(UpdateGroupRequest $request,Group $group)
     {
         $data = $request->validated();
-
-        $record = Group::findOrFail($data['id']);
-
-        $record->update($data);
-
-        return response()->json([
-            'isSuccessful' => true,
-            'message' => 'Data updated successfully'
-        ]);
-//        return redirect()->route('groups.index')->with('status', 'List updated!');
+        $group->update($data);
+        return redirect()->route('groups.index')->with('status', 'List updated!');
     }
 
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Group $list): RedirectResponse
+    public function destroy(Group $group): RedirectResponse
     {
-        $list->delete();
+        $group->delete();
         return redirect()->route('groups.index')->with('status', 'List deleted!');
     }
 

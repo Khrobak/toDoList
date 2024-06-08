@@ -29,23 +29,26 @@
                     </h4>
                     <a href="#" class="col-2 btn btn-transparent update-group" id="update-group{{$group->id}}">
                         <i class="bi bi-pen"></i> </a>
-                    <form class="col-2 destroy-group" id="destroy-group{{$group->id}}">
+                    <form class="col-2 destroy-group" method="post" id="destroy-group{{$group->id}}"
+                          action="{{route('groups.destroy', $group)}}">
                         @csrf
-                        <input type="hidden" name="id" value="{{$group->id}}">
+                        @method('DELETE')
                         <button type="submit" class="btn btn-transparent"><i class="bi bi-x-square"></i></button>
                     </form>
                 </div>
                 <div class="row px-4 py-1 visually-hidden update-group{{$group->id}}">
-                    <form class="update-group" id="update-group{{$group->id}}form">
+                    <form class="update-group" id="update-group{{$group->id}}form" method="post"
+                          action="{{route('groups.update', $group)}}">
                         @csrf
+                        @method('PUT')
                         <div class="mb-3">
                             <label for="title" class="form-label">Title</label>
                             <input type="text" class="form-control" id="title" name="title" value="{{$group->title}}">
                             @error('title')
                             <div class="form-text">{{$message}}</div>
                             @enderror
-                            <input type="text" class="form-control" name="user_id" value="{{1}}" hidden>
-                            <input type="hidden" name="id" value="{{$group->id}}">
+                            <input type="text" class="form-control" name="user_id" value="{{auth()->user()->id}}"
+                                   hidden>
                         </div>
                         <button type="submit" class="btn btn-primary">Submit</button>
                     </form>
@@ -76,9 +79,10 @@
                                 </div>
                             @endif
                             <div class="visually-hidden update-task{{$task->id}}">
-                                <form action="#" enctype="multipart/form-data" id="update-task{{$task->id}}form"
-                                      class="update-task">
+                                <form enctype="multipart/form-data" id="update-task{{$task->id}}form"
+                                      class="update-task" method="post" action="{{route('tasks.update', $task)}}">
                                     @csrf
+                                    @method('PUT')
                                     <div class="mb-3">
                                         <label for="title" class="form-label">Title</label>
                                         <input type="text" class="form-control" id="title" name="title"
@@ -111,7 +115,6 @@
                                     </div>
                                     <input type="text" class="form-control" name="group_id" value="{{$task->group_id}}"
                                            hidden>
-                                    <input type="hidden" name="id" value="{{ $task->id }}">
                                     <button type="submit" class="btn btn-primary">Submit</button>
                                 </form>
                             </div>
@@ -125,7 +128,8 @@
                     <li class="visually-hidden list-group-item" id='{{$group->id}}li'>
                         <div class="m-1">
                             <form class="store-task"
-                                  enctype="multipart/form-data" class="{{$group->id}}">
+                                  enctype="multipart/form-data" class="{{$group->id}}" method="post"
+                                  action="{{route('tasks.store')}}">
                                 @csrf
                                 <div class="mb-3">
                                     <label for="title" class="form-label">Title</label>
@@ -183,13 +187,11 @@
                         console.log(response);
                         location.reload()
                     },
-                    error: function (xhr, status, error) {
+                    error: function (xhr) {
                         console.error(xhr.responseText);
                     }
                 });
             });
-
-
             let id;
             $('a.btn-outline-dark').click(function (e) {
                 e.preventDefault();
@@ -201,125 +203,6 @@
                 id = $(this).attr('id');
                 $("." + id).removeClass('visually-hidden');
             })
-
-
-            $('form.update-group').submit(function (e) {
-                e.preventDefault();
-                console.log($(this));
-                const formData = new FormData(this);
-                $.ajax({
-                    type: 'POST',
-                    url: '{!! route('groups.update') !!}',
-                    data: formData,
-                    dataType: 'json',
-                    processData: false,
-                    contentType: false,
-                    success: function (response) {
-                        console.log(response);
-                        location.reload()
-                    },
-                    error: function (xhr, status, error) {
-                        console.error(xhr.responseText);
-                    }
-                });
-            });
-
-            $('form.update-task').submit(function (e) {
-                e.preventDefault();
-                const formData = new FormData(this);
-                $.ajaxSetup({
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    }
-                });
-                $.ajax({
-                    type: 'PUT',
-                    url: '{!! route('tasks.update', $task ) !!}',
-                    data: formData,
-                    dataType: 'json',
-                    processData: false,
-                    contentType: false,
-                    success: function (response) {
-                        console.log(response);
-                        location.reload()
-                    },
-                    error: function (xhr, status, error) {
-                        console.error(xhr.responseText);
-                    }
-                });
-            });
-
-            $('form.store-task').submit(function (e) {
-                e.preventDefault();
-                const formData = new FormData(this);
-                $.ajax({
-                    type: 'POST',
-                    url: '{!! route('tasks.create', $group ) !!}',
-                    data: formData,
-                    dataType: 'json',
-                    processData: false,
-                    contentType: false,
-                    success: function (response) {
-                        console.log(response);
-                        location.reload()
-                    },
-                    error: function (xhr, status, error) {
-                        console.error(xhr.responseText);
-                    }
-                });
-            });
-
-
-            $('form.destroy-task').submit(function (e) {
-                e.preventDefault();
-                const formData = new FormData(this);
-                console.log(formData);
-                $.ajaxSetup({
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    }
-                });
-                $.ajax({
-                    type: 'DELETE',
-                    url: '{!! route('tasks.destroy', $task->id ) !!}',
-                    data: formData,
-                    dataType: 'json',
-                    processData: false,
-                    contentType: false,
-                    success: function (response) {
-                        console.log(response);
-                        location.reload()
-                    },
-                    error: function (xhr, status, error) {
-                        console.error(xhr.responseText);
-                    }
-                });
-            });
-
-            $('form.destroy-group').submit(function (e) {
-                e.preventDefault();
-                const formData = new FormData(this);
-                $.ajaxSetup({
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    }
-                });
-                $.ajax({
-                    type: 'DELETE',
-                    url: '{!! route('groups.destroy', $group->id) !!}',
-                    data: formData,
-                    dataType: 'json',
-                    processData: false,
-                    contentType: false,
-                    success: function (response) {
-                        console.log(response);
-                        location.reload()
-                    },
-                    error: function (xhr, status, error) {
-                        console.error(xhr.responseText);
-                    }
-                });
-            });
         });
     </script>
 @endsection

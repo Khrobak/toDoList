@@ -6,7 +6,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Auth::routes();
+
 
 Route::group(['middleware' => 'auth'], function () {
     Route::get('/groups', [\App\Http\Controllers\GroupController::class, 'index'])->name('groups.index');
@@ -24,3 +24,4 @@ Route::group(['middleware' => 'auth'], function () {
     Route::delete('/tasks/{task}', [\App\Http\Controllers\TaskController::class, 'destroy'])->name('tasks.destroy');
 });
 
+Auth::routes();
