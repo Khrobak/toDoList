@@ -22,10 +22,12 @@ class UpdateTaskRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => 'string|required|max:200',
-            'tags' => 'required|array',
+            'title' => 'string',
+            'tags' => 'nullable|array',
+            'tags.*' => 'nullable|string|unique:tags,title',
             'group_id' => 'required|exists:groups,id',
-            'image' => 'nullable|file'
+            'image' => 'nullable|file',
+            'delete' => 'nullable|string'
         ];
     }
 
@@ -34,10 +36,15 @@ class UpdateTaskRequest extends FormRequest
      *
      * @return void
      */
-    protected function prepareForValidation()
+    protected function prepareForValidation(): void
     {
         $this->merge( [
-           'tags' => explode(', ', $this->tags)
+            'title' => $this->title,
+            'tags' => explode(', ', $this->tags),
+            'group_id' => $this->group_id,
+            'image' => $this->image,
+            'delete' => $this->delete
         ]);
     }
+
 }

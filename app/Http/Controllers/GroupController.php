@@ -18,24 +18,28 @@ class GroupController extends Controller
     public function index(GroupRepository $groupRepository): View
     {
         $groups = $groupRepository->getAllWithRelations();
-
         return view('groups.index', compact('groups'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreGroupRequest $request): RedirectResponse
+    public function store(StoreGroupRequest $request)
     {
         Group::create($request->validated());
-        return redirect()->route('groups.index')->with('status', 'List created!');
+        return response()->json([
+            'isSuccessful' => true,
+            'message' => 'List stored successfully',
+        ]);
     }
 
 
     public function update(UpdateGroupRequest $request,Group $group)
     {
         $data = $request->validated();
-        $group->update($data);
+        $group->title = $data['title'];
+        $group->user_id = $data['user_id'];
+        $group->save();
         return redirect()->route('groups.index')->with('status', 'List updated!');
     }
 
@@ -53,6 +57,12 @@ class GroupController extends Controller
     {
         $data = $request->get('tags');
         $groups = $groupRepository->getAllWithFilterTag($data);
+        return view('groups.index', compact('groups'));
+    }
+
+    public function search(GroupRepository $groupRepository, Request $request): View
+    {
+        $groups = $groupRepository->getAllWithSearching($request->get('search'));
         return view('groups.index', compact('groups'));
     }
 }

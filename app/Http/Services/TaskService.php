@@ -4,7 +4,6 @@ namespace App\Http\Services;
 
 use App\Models\Tag;
 use App\Models\Task;
-use Illuminate\Http\File;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
@@ -39,11 +38,16 @@ class TaskService
             $file = $data['image'];
             $this->storeImages($file, $data);
         }
+        if (!empty($data['delete'])) {
+            Storage::disk('public')->delete([$task->main_img, $task->preview_img]);
+            $data['main_img'] = null;
+            $data['preview_img'] = null;
+        }
 
         //upsert tags
-          $tags = $this->addDataToTagModel($data);
+        $tags = $this->addDataToTagModel($data);
 
-        unset($data['tags'], $data['image']);
+        unset($data['tags'], $data['image'], $data['delete_image']);
 
         //update task
         $status = $task->update($data);
@@ -68,13 +72,13 @@ class TaskService
         $data['main_img'] = $path;
     }
 
-    public function addDataToTagModel(array &$data): Collection
+    public function addDataToTagModel(array $data): Collection
     {
-        $tags = collect($data['tags']);
+        $tags = collect($data['tags'])->unique();
         $map_tags = $tags->map(function ($tag) {
             return ['title' => $tag];
-        });
-        Tag::upsert($map_tags->toArray(), 'title');
+        })->toArray();
+        Tag::upsert($map_tags, 'title');
         return $tags;
     }
 

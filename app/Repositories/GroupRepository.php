@@ -3,13 +3,11 @@
 namespace App\Repositories;
 
 use App\Http\Resources\GroupResource;
-use App\Models\Group;
 use App\Models\Group as Model;
 use App\Models\Tag;
 use App\Models\Task;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Resources\Json\ResourceCollection;
-use Illuminate\Support\Collection;
 
 class GroupRepository extends CoreRepository
 {
@@ -27,9 +25,7 @@ class GroupRepository extends CoreRepository
             ->orderByDesc('created_at')
             ->get();
 
-        $groups = GroupResource::collection($listCollection);
-
-        return $groups;
+        return GroupResource::collection($listCollection);
     }
 
     public function getAllWithFilterTag(array $data): ResourceCollection
@@ -45,7 +41,26 @@ class GroupRepository extends CoreRepository
         $groups = $this->startConditions()
             ->whereIn('id', $tasks->select('group_id')->getQuery())
             ->get();
-        $groups = GroupResource::collection($groups);
-        return $groups;
+        return GroupResource::collection($groups);
+    }
+
+    public function getAllWithSearching($data): ResourceCollection
+    {
+        $tasks = Task::search($data)
+            ->get()
+            ->map(function ($task) {
+                return $task->id;
+            })
+            ->toArray();
+        $listCollection = $this->startConditions()
+            ->query()
+            ->whereHas('tasks', function ($query) use($tasks) {
+                $query->whereIn('id', $tasks);
+            })
+            ->select(['title', 'user_id', 'id', 'created_at'])
+            ->with('tasks.tags')
+            ->orderByDesc('created_at')
+            ->get();
+        return GroupResource::collection($listCollection);
     }
 }

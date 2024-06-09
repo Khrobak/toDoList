@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -9,8 +10,9 @@ Route::get('/', function () {
 
 
 Route::group(['middleware' => 'auth'], function () {
-    Route::get('/groups', [\App\Http\Controllers\GroupController::class, 'index'])->name('groups.index');
+    Route::get('/groups/', [\App\Http\Controllers\GroupController::class, 'index'])->name('groups.index');
     Route::post('/groups/filter', [\App\Http\Controllers\GroupController::class, 'filter'])->name('groups.filter');
+    Route::post('/groups/search', [\App\Http\Controllers\GroupController::class, 'search'])->name('groups.search');
     Route::get('/groups/create', [\App\Http\Controllers\GroupController::class, 'create'])->name('groups.create');
     Route::post('/groups', [\App\Http\Controllers\GroupController::class, 'store'])->name('groups.store');
     Route::get('/groups/{group}/edit/', [\App\Http\Controllers\GroupController::class, 'edit'])->name('groups.edit');

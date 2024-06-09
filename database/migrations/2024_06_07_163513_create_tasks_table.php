@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('tasks', function (Blueprint $table) {
             $table->id();
             $table->string('title');
+            $table->fullText('title');
             $table->string('preview_img')->nullable();
             $table->string('main_img')->nullable();
             $table->foreignId('group_id')->constrained('groups', 'id')->cascadeOnDelete()->nullable();

@@ -22,8 +22,9 @@ class StoreTaskRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => 'string|required|max:200',
-            'tags' => 'required|array',
+            'title' => 'string|required|unique:tasks,title|max:200',
+            'tags' => 'array',
+            'tags.*' => 'string|required|unique:tags,title',
             'group_id' => 'required|exists:groups,id',
             'image' => 'nullable|file'
         ];
@@ -34,7 +35,7 @@ class StoreTaskRequest extends FormRequest
      *
      * @return void
      */
-    protected function prepareForValidation()
+    protected function prepareForValidation(): void
     {
         $this->merge([
             'tags' => explode(', ', $this->tags),
@@ -42,5 +43,12 @@ class StoreTaskRequest extends FormRequest
             'group_id' => $this->group_id,
             'image' => $this->image
         ]);
+    }
+
+    public function messages(): array
+    {
+        return [
+            'tags.*.required' => 'The tags field is required.',
+        ];
     }
 }

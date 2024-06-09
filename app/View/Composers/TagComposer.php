@@ -15,6 +15,6 @@ class TagComposer
      */
     public function compose(View $view): void
     {
-        $view->with('tags', Tag::query()->select('id', 'title')->get());
+        $view->with('tags', Tag::query()->select('id', 'title')->distinct()->get());
     }
 }

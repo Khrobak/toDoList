@@ -5,7 +5,6 @@ namespace App\Providers;
 use App\View\Composers\TagComposer;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades;
-use Illuminate\View\View;
 
 class AppServiceProvider extends ServiceProvider
 {
